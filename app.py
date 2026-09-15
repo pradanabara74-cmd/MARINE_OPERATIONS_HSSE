@@ -102,7 +102,7 @@ st.markdown(
 # SIDEBAR
 # ============================================================
 
-st.sidebar.title("⚓ SHIPPING COMPANY HSSE OPERATIONS CONTROL CENTRE")f
+st.sidebar.title("⚓ SHIPPING COMPANY HSSE OPERATIONS CONTROL CENTRE")
 
 st.sidebar.caption(
     "Health • Safety • Security • Environment"
