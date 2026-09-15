@@ -44,57 +44,20 @@ VESSELS = [
 ]
 
 # ============================================================
-# SESSION STATE
+# SESSION DATA
 # ============================================================
 
 if "incidents" not in st.session_state:
     st.session_state.incidents = []
 
-if "near_misses" not in st.session_state:
-    st.session_state.near_misses = []
+if "near_miss" not in st.session_state:
+    st.session_state.near_miss = []
 
-if "actions" not in st.session_state:
-    st.session_state.actions = []
+if "corrective_actions" not in st.session_state:
+    st.session_state.corrective_actions = []
 
-if "risk_register" not in st.session_state:
-    st.session_state.risk_register = []
-
-# ============================================================
-# STYLE
-# ============================================================
-
-st.markdown(
-    """
-    <style>
-    .main-title {
-        font-size: 30px;
-        font-weight: 800;
-        text-align: center;
-        margin-bottom: 5px;
-    }
-
-    .sub-title {
-        text-align: center;
-        font-size: 17px;
-        margin-bottom: 25px;
-    }
-
-    .company-box {
-        padding: 15px;
-        border: 1px solid #cccccc;
-        border-radius: 10px;
-        margin-bottom: 15px;
-    }
-
-    .footer {
-        text-align: center;
-        font-size: 13px;
-        padding: 25px 5px 10px 5px;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+if "observations" not in st.session_state:
+    st.session_state.observations = []
 
 # ============================================================
 # SIDEBAR
@@ -103,8 +66,10 @@ st.markdown(
 st.sidebar.title("⚓ SHIPPING COMPANY HSSE")
 st.sidebar.caption("Operations Control Centre")
 
+st.sidebar.markdown("### CONTROL CENTRE")
+
 menu = st.sidebar.radio(
-    "CONTROL CENTRE",
+    "Navigation",
     [
         "📊 Executive Dashboard",
         "🏢 Company & Shore HSSE",
@@ -114,13 +79,14 @@ menu = st.sidebar.radio(
         "🔐 Security Management",
         "🌱 Environmental Management",
         "⚠️ Incident & Near Miss",
-        "🧭 Risk Management",
+        "🎯 Risk Management",
         "🚨 Emergency Response",
         "📋 Compliance & Audit",
         "✅ Corrective Actions",
         "📈 HSSE KPI",
         "🤖 AI HSSE Intelligence",
-    ]
+    ],
+    label_visibility="collapsed"
 )
 
 st.sidebar.divider()
@@ -130,73 +96,69 @@ selected_vessel = st.sidebar.selectbox(
     ["ALL VESSELS"] + VESSELS
 )
 
-st.sidebar.write("Fleet size:", len(VESSELS))
-st.sidebar.write("System:", "ONLINE")
-st.sidebar.write("Updated:", datetime.now().strftime("%d-%m-%Y %H:%M"))
+st.sidebar.caption(
+    "Health • Safety • Security • Environment"
+)
 
 # ============================================================
 # HEADER
 # ============================================================
 
-st.markdown(
-    """
-    <div class="main-title">
-    ⚓ SHIPPING COMPANY HEALTH, SAFETY, SECURITY & ENVIRONMENTAL
-    OPERATIONS CONTROL CENTRE
-    </div>
-    """,
-    unsafe_allow_html=True
+st.title(
+    "⚓ SHIPPING COMPANY HEALTH, SAFETY, SECURITY & "
+    "ENVIRONMENTAL OPERATIONS CONTROL CENTRE"
 )
 
-st.markdown(
-    """
-    <div class="sub-title">
-    Company • Shore Office • Fleet • Vessel • Personnel • Contractors •
-    Risk • Compliance • Emergency Response • HSSE Intelligence
-    </div>
-    """,
-    unsafe_allow_html=True
+st.caption(
+    "Company • Shore Office • Fleet • Vessel • Personnel • "
+    "Contractors • Risk • Compliance • Emergency Response • "
+    "HSSE Intelligence"
 )
+
+st.divider()
 
 # ============================================================
-# EXECUTIVE DASHBOARD
+# 1. EXECUTIVE DASHBOARD
 # ============================================================
 
 if menu == "📊 Executive Dashboard":
 
     st.header("📊 HSSE Executive Dashboard")
 
-    col1, col2, col3, col4 = st.columns(4)
+    c1, c2, c3, c4 = st.columns(4)
 
-    col1.metric("Fleet", len(VESSELS))
-    col2.metric("Active Vessels", len(VESSELS))
-    col3.metric("Open HSSE Actions", len(st.session_state.actions))
-    col4.metric("Critical Events", 0)
-
-    st.divider()
+    c1.metric("Fleet", len(VESSELS))
+    c2.metric("Active Vessels", len(VESSELS))
+    c3.metric(
+        "Open HSSE Actions",
+        len(st.session_state.corrective_actions)
+    )
+    c4.metric(
+        "Reported Events",
+        len(st.session_state.incidents) +
+        len(st.session_state.near_miss)
+    )
 
     st.subheader("🏢 Company HSSE Status")
 
-    company_status = pd.DataFrame(
-        {
-            "Area": [
-                "Health",
-                "Safety",
-                "Security",
-                "Environment",
-                "Emergency Preparedness",
-                "Compliance",
-            ],
-            "Status": [
-                "MONITORING",
-                "MONITORING",
-                "MONITORING",
-                "MONITORING",
-                "READY",
-                "MONITORING",
-            ],
-        }
-    )
+    company_status = pd.DataFrame({
+        "Area": [
+            "Health",
+            "Safety",
+            "Security",
+            "Environment",
+            "Emergency Preparedness",
+            "Compliance"
+        ],
+        "Status": [
+            "MONITORING",
+            "MONITORING",
+            "MONITORING",
+            "MONITORING",
+            "READY",
+            "MONITORING"
+        ]
+    })
 
     st.dataframe(
         company_status,
@@ -206,485 +168,556 @@ if menu == "📊 Executive Dashboard":
 
     st.subheader("🚢 Fleet HSSE Overview")
 
-    fleet_data = pd.DataFrame(
-        {
-            "Vessel": VESSELS,
-            "HSSE Status": ["MONITORING"] * len(VESSELS),
-            "Open Incident": [0] * len(VESSELS),
-            "Near Miss": [0] * len(VESSELS),
-            "Open Actions": [0] * len(VESSELS),
-        }
-    )
+    fleet = pd.DataFrame({
+        "Vessel": VESSELS,
+        "HSSE Status": ["MONITORING"] * len(VESSELS),
+        "Open Incident": [0] * len(VESSELS),
+        "Near Miss": [0] * len(VESSELS),
+        "Open Actions": [0] * len(VESSELS)
+    })
 
     st.dataframe(
-        fleet_data,
+        fleet,
         use_container_width=True,
         hide_index=True
     )
 
 # ============================================================
-# COMPANY & SHORE HSSE
+# 2. COMPANY & SHORE HSSE
 # ============================================================
 
 elif menu == "🏢 Company & Shore HSSE":
 
-    st.header("🏢 Company & Shore HSSE Management")
+    st.header("🏢 Company & Shore Office HSSE")
 
     st.info(
-        "Central HSSE control for shipping company management, "
-        "shore office, marine operations, technical department, "
-        "crewing, contractors and fleet."
+        "Monitoring HSSE performance for company management "
+        "and shore-based operations."
     )
 
     col1, col2 = st.columns(2)
 
     with col1:
-        st.subheader("Company HSSE Functions")
-        st.write("• HSSE Policy & Objectives")
-        st.write("• Management Review")
-        st.write("• Safety Management System")
-        st.write("• Management of Change")
-        st.write("• Contractor HSSE")
-        st.write("• Training & Competency")
+        st.subheader("Management Review")
+        st.text_area(
+            "Management HSSE Review / Notes",
+            height=180
+        )
 
     with col2:
-        st.subheader("Shore Management")
-        st.write("• Marine Operations")
-        st.write("• Technical Department")
-        st.write("• Crewing Department")
-        st.write("• DPA / Safety Department")
-        st.write("• Emergency Response Team")
-        st.write("• Senior Management")
+        st.subheader("Shore Office Inspection")
+        st.selectbox(
+            "Inspection Status",
+            ["Not Started", "In Progress", "Completed"]
+        )
+        st.date_input("Inspection Date")
+
+    st.button("Save Company HSSE Record")
 
 # ============================================================
-# FLEET HSSE
+# 3. FLEET HSSE
 # ============================================================
 
 elif menu == "🚢 Fleet HSSE":
 
-    st.header("🚢 Fleet HSSE Control")
+    st.header("🚢 Fleet HSSE")
 
     vessel = st.selectbox(
-        "Select Vessel",
+        "Vessel",
         VESSELS,
-        key="fleet_vessel"
+        index=0
     )
 
-    col1, col2, col3, col4 = st.columns(4)
+    c1, c2, c3, c4 = st.columns(4)
 
-    col1.metric("HSSE Status", "MONITORING")
-    col2.metric("Open Incident", 0)
-    col3.metric("Near Miss", 0)
-    col4.metric("Open Actions", 0)
+    c1.metric("HSSE Status", "MONITORING")
+    c2.metric("Incidents", "0")
+    c3.metric("Near Miss", "0")
+    c4.metric("Open Actions", "0")
 
-    st.success(f"{vessel} is under HSSE monitoring.")
+    st.subheader(f"HSSE Review — {vessel}")
 
-    st.subheader("Fleet Monitoring Areas")
-
-    monitoring = pd.DataFrame(
-        {
-            "Category": [
-                "Safety",
-                "Health",
-                "Security",
-                "Environment",
-                "Emergency Preparedness",
-                "Compliance",
-            ],
-            "Status": ["MONITORING"] * 6,
-        }
+    st.text_area(
+        "Fleet / Vessel HSSE Remarks",
+        height=180
     )
 
-    st.dataframe(
-        monitoring,
-        use_container_width=True,
-        hide_index=True
-    )
+    st.button("Save Fleet HSSE Review")
 
 # ============================================================
-# SAFETY
+# 4. SAFETY MANAGEMENT
 # ============================================================
 
 elif menu == "🦺 Safety Management":
 
     st.header("🦺 Safety Management")
 
-    st.write("Control and monitoring of:")
+    vessel = st.selectbox("Vessel", VESSELS)
 
-    st.write("• Permit to Work")
-    st.write("• Toolbox Meeting")
-    st.write("• Job Safety Analysis")
-    st.write("• PPE Compliance")
-    st.write("• Safe Working Practices")
-    st.write("• Lifting Operations")
-    st.write("• Working Aloft")
-    st.write("• Enclosed Space Entry")
-    st.write("• Hot Work")
-    st.write("• Safety Observation")
+    activity = st.selectbox(
+        "Safety Activity",
+        [
+            "Safety Observation",
+            "Unsafe Act",
+            "Unsafe Condition",
+            "Toolbox Meeting",
+            "Permit to Work",
+            "JSA / Risk Assessment",
+            "Safety Inspection"
+        ]
+    )
+
+    description = st.text_area("Description")
+
+    severity = st.selectbox(
+        "Risk Level",
+        ["Low", "Medium", "High", "Critical"]
+    )
+
+    if st.button("Save Safety Record"):
+        st.session_state.observations.append({
+            "Date": datetime.now().strftime("%Y-%m-%d %H:%M"),
+            "Vessel": vessel,
+            "Activity": activity,
+            "Description": description,
+            "Risk": severity
+        })
+
+        st.success("Safety record saved.")
+
+    if st.session_state.observations:
+        st.dataframe(
+            pd.DataFrame(st.session_state.observations),
+            use_container_width=True,
+            hide_index=True
+        )
 
 # ============================================================
-# HEALTH
+# 5. HEALTH MANAGEMENT
 # ============================================================
 
 elif menu == "❤️ Health Management":
 
-    st.header("❤️ Occupational Health Management")
+    st.header("❤️ Health Management")
 
-    st.write("• Crew medical fitness")
-    st.write("• Occupational health monitoring")
-    st.write("• Fatigue management")
-    st.write("• Hours of rest monitoring")
-    st.write("• Hygiene and sanitation")
-    st.write("• Heat stress")
-    st.write("• Noise exposure")
-    st.write("• Health campaigns")
+    vessel = st.selectbox("Vessel", VESSELS)
+
+    st.selectbox(
+        "Health Category",
+        [
+            "Medical Case",
+            "First Aid",
+            "Fitness for Duty",
+            "Fatigue",
+            "Occupational Health",
+            "Hygiene",
+            "Heat Stress",
+            "Other"
+        ]
+    )
+
+    st.text_area("Health Report / Observation")
+
+    st.selectbox(
+        "Status",
+        ["Monitoring", "Follow Up", "Closed"]
+    )
+
+    st.button("Save Health Record")
 
 # ============================================================
-# SECURITY
+# 6. SECURITY MANAGEMENT
 # ============================================================
 
 elif menu == "🔐 Security Management":
 
-    st.header("🔐 Maritime Security Management")
+    st.header("🔐 Security Management")
 
-    st.write("• Ship Security Plan")
-    st.write("• Security Level Monitoring")
-    st.write("• Access Control")
-    st.write("• Visitor Management")
-    st.write("• Security Drills")
-    st.write("• Suspicious Activity Reporting")
-    st.write("• Cyber Security Awareness")
-    st.write("• ISPS Monitoring")
+    vessel = st.selectbox("Vessel", VESSELS)
+
+    st.selectbox(
+        "Security Level",
+        ["Level 1", "Level 2", "Level 3"]
+    )
+
+    st.selectbox(
+        "Security Event",
+        [
+            "Routine Monitoring",
+            "Access Control",
+            "Security Breach",
+            "Suspicious Activity",
+            "Piracy / Armed Robbery",
+            "Cyber Security",
+            "Other"
+        ]
+    )
+
+    st.text_area("Security Report")
+
+    st.button("Save Security Record")
 
 # ============================================================
-# ENVIRONMENT
+# 7. ENVIRONMENTAL MANAGEMENT
 # ============================================================
 
 elif menu == "🌱 Environmental Management":
 
     st.header("🌱 Environmental Management")
 
-    st.write("• MARPOL compliance")
-    st.write("• Oil pollution prevention")
-    st.write("• Garbage management")
-    st.write("• Sewage management")
-    st.write("• Air emissions")
-    st.write("• Ballast water")
-    st.write("• Spill prevention")
-    st.write("• Environmental incidents")
+    vessel = st.selectbox("Vessel", VESSELS)
+
+    st.selectbox(
+        "Environmental Category",
+        [
+            "Oil Spill",
+            "Garbage",
+            "Sewage",
+            "Air Emission",
+            "Ballast Water",
+            "Hazardous Material",
+            "Environmental Observation",
+            "Other"
+        ]
+    )
+
+    st.text_area("Environmental Report")
+
+    st.selectbox(
+        "Status",
+        ["Normal", "Monitoring", "Action Required", "Critical"]
+    )
+
+    st.button("Save Environmental Record")
 
 # ============================================================
-# INCIDENT & NEAR MISS
+# 8. INCIDENT & NEAR MISS
 # ============================================================
 
 elif menu == "⚠️ Incident & Near Miss":
 
     st.header("⚠️ Incident & Near Miss Management")
 
-    with st.form("incident_form"):
+    report_type = st.radio(
+        "Report Type",
+        ["Incident / Accident", "Near Miss"]
+    )
 
-        source = st.selectbox(
-            "Source",
-            ["SHORE OFFICE"] + VESSELS
-        )
+    vessel = st.selectbox("Vessel", VESSELS)
 
-        event_type = st.selectbox(
-            "Event Type",
-            [
-                "Incident",
-                "Near Miss",
-                "Unsafe Act",
-                "Unsafe Condition",
-                "Environmental Event",
-                "Security Event",
-            ]
-        )
+    event_date = st.date_input("Event Date")
 
-        description = st.text_area("Description")
+    description = st.text_area("Event Description")
 
-        severity = st.selectbox(
-            "Severity",
-            ["Low", "Medium", "High", "Critical"]
-        )
+    severity = st.selectbox(
+        "Severity",
+        ["Low", "Medium", "High", "Critical"]
+    )
 
-        submitted = st.form_submit_button("Save HSSE Event")
+    immediate_action = st.text_area("Immediate Action")
 
-        if submitted:
+    if st.button("Submit Event Report"):
 
-            if description.strip():
+        record = {
+            "Date": str(event_date),
+            "Vessel": vessel,
+            "Description": description,
+            "Severity": severity,
+            "Immediate Action": immediate_action
+        }
 
-                st.session_state.incidents.append(
-                    {
-                        "Date": datetime.now().strftime("%Y-%m-%d %H:%M"),
-                        "Source": source,
-                        "Type": event_type,
-                        "Description": description,
-                        "Severity": severity,
-                    }
-                )
+        if report_type == "Incident / Accident":
+            st.session_state.incidents.append(record)
+        else:
+            st.session_state.near_miss.append(record)
 
-                st.success("HSSE event recorded successfully.")
-
-            else:
-                st.warning("Please enter event description.")
+        st.success("HSSE event recorded successfully.")
 
     if st.session_state.incidents:
-
-        st.subheader("HSSE Event Register")
-
+        st.subheader("Incident Records")
         st.dataframe(
             pd.DataFrame(st.session_state.incidents),
             use_container_width=True,
             hide_index=True
         )
 
-# ============================================================
-# RISK MANAGEMENT
-# ============================================================
-
-elif menu == "🧭 Risk Management":
-
-    st.header("🧭 HSSE Risk Management")
-
-    with st.form("risk_form"):
-
-        hazard = st.text_input("Hazard")
-
-        likelihood = st.selectbox(
-            "Likelihood",
-            [1, 2, 3, 4, 5]
-        )
-
-        consequence = st.selectbox(
-            "Consequence",
-            [1, 2, 3, 4, 5]
-        )
-
-        mitigation = st.text_area("Control / Mitigation")
-
-        save_risk = st.form_submit_button("Add Risk")
-
-        if save_risk and hazard.strip():
-
-            score = likelihood * consequence
-
-            st.session_state.risk_register.append(
-                {
-                    "Hazard": hazard,
-                    "Likelihood": likelihood,
-                    "Consequence": consequence,
-                    "Risk Score": score,
-                    "Mitigation": mitigation,
-                }
-            )
-
-            st.success("Risk added to HSSE Risk Register.")
-
-    if st.session_state.risk_register:
-
+    if st.session_state.near_miss:
+        st.subheader("Near Miss Records")
         st.dataframe(
-            pd.DataFrame(st.session_state.risk_register),
+            pd.DataFrame(st.session_state.near_miss),
             use_container_width=True,
             hide_index=True
         )
 
 # ============================================================
-# EMERGENCY RESPONSE
+# 9. RISK MANAGEMENT
+# ============================================================
+
+elif menu == "🎯 Risk Management":
+
+    st.header("🎯 HSSE Risk Management")
+
+    vessel = st.selectbox("Vessel", VESSELS)
+
+    hazard = st.text_input("Hazard")
+
+    likelihood = st.slider(
+        "Likelihood",
+        1,
+        5,
+        1
+    )
+
+    consequence = st.slider(
+        "Consequence",
+        1,
+        5,
+        1
+    )
+
+    risk_score = likelihood * consequence
+
+    st.metric("Risk Score", risk_score)
+
+    if risk_score >= 15:
+        st.error("HIGH / CRITICAL RISK")
+    elif risk_score >= 8:
+        st.warning("MEDIUM RISK")
+    else:
+        st.success("LOW RISK")
+
+    st.text_area("Risk Control / Mitigation")
+
+    st.button("Save Risk Assessment")
+
+# ============================================================
+# 10. EMERGENCY RESPONSE
 # ============================================================
 
 elif menu == "🚨 Emergency Response":
 
-    st.header("🚨 Emergency Response Centre")
+    st.header("🚨 Emergency Response")
 
-    st.warning("Emergency Response Readiness")
+    vessel = st.selectbox("Vessel", VESSELS)
 
-    emergency_data = pd.DataFrame(
-        {
-            "Emergency Scenario": [
-                "Fire / Explosion",
-                "Collision",
-                "Grounding",
-                "Oil Spill",
-                "Man Overboard",
-                "Medical Emergency",
-                "Security Threat",
-                "Abandon Ship",
-            ],
-            "Status": ["READY"] * 8,
-        }
+    emergency = st.selectbox(
+        "Emergency Type",
+        [
+            "Fire",
+            "Collision",
+            "Grounding",
+            "Flooding",
+            "Oil Spill",
+            "Man Overboard",
+            "Medical Emergency",
+            "Security Threat",
+            "Abandon Ship",
+            "Other"
+        ]
     )
 
-    st.dataframe(
-        emergency_data,
-        use_container_width=True,
-        hide_index=True
+    st.selectbox(
+        "Emergency Status",
+        [
+            "Standby",
+            "Activated",
+            "Under Control",
+            "Closed"
+        ]
     )
+
+    st.text_area("Emergency Situation / Actions")
+
+    st.button("Save Emergency Record")
 
 # ============================================================
-# COMPLIANCE & AUDIT
+# 11. COMPLIANCE & AUDIT
 # ============================================================
 
 elif menu == "📋 Compliance & Audit":
 
-    st.header("📋 HSSE Compliance & Audit")
+    st.header("📋 Compliance & Audit")
 
-    compliance = pd.DataFrame(
-        {
-            "Framework": [
-                "ISM Code",
-                "ISPS Code",
-                "MARPOL",
-                "SOLAS",
-                "MLC",
-                "Company SMS",
-                "Internal Audit",
-                "External Audit",
-            ],
-            "Status": ["MONITORING"] * 8,
-        }
+    vessel = st.selectbox("Vessel", VESSELS)
+
+    audit_type = st.selectbox(
+        "Audit / Inspection",
+        [
+            "ISM Internal Audit",
+            "ISPS Audit",
+            "MLC Inspection",
+            "HSSE Inspection",
+            "Flag State",
+            "Port State Control",
+            "Client Audit",
+            "Management Inspection",
+            "Other"
+        ]
     )
 
-    st.dataframe(
-        compliance,
-        use_container_width=True,
-        hide_index=True
+    finding = st.text_area("Finding / Observation")
+
+    classification = st.selectbox(
+        "Classification",
+        [
+            "Observation",
+            "Minor",
+            "Major",
+            "Non-Conformity"
+        ]
     )
+
+    due_date = st.date_input("Target Close Date")
+
+    st.button("Save Audit Finding")
 
 # ============================================================
-# CORRECTIVE ACTIONS
+# 12. CORRECTIVE ACTIONS
 # ============================================================
 
 elif menu == "✅ Corrective Actions":
 
-    st.header("✅ Corrective & Preventive Action Tracker")
+    st.header("✅ Corrective Action Tracker")
 
-    with st.form("action_form"):
+    vessel = st.selectbox("Vessel", VESSELS)
 
-        action_source = st.selectbox(
-            "Source",
-            [
-                "Incident",
-                "Near Miss",
-                "Audit",
-                "Inspection",
-                "Risk Assessment",
-                "Management Review",
-            ]
-        )
+    action = st.text_area("Corrective Action")
 
-        action = st.text_area("Required Action")
+    responsible = st.text_input(
+        "Responsible Person / Department"
+    )
 
-        responsible = st.text_input("Responsible Person / Department")
+    due_date = st.date_input("Due Date")
 
-        target_date = st.date_input("Target Date")
+    priority = st.selectbox(
+        "Priority",
+        ["Low", "Medium", "High", "Critical"]
+    )
 
-        save_action = st.form_submit_button("Create Action")
+    if st.button("Add Corrective Action"):
 
-        if save_action and action.strip():
+        st.session_state.corrective_actions.append({
+            "Vessel": vessel,
+            "Action": action,
+            "Responsible": responsible,
+            "Due Date": str(due_date),
+            "Priority": priority,
+            "Status": "OPEN"
+        })
 
-            st.session_state.actions.append(
-                {
-                    "Source": action_source,
-                    "Action": action,
-                    "Responsible": responsible,
-                    "Target Date": str(target_date),
-                    "Status": "OPEN",
-                }
-            )
+        st.success("Corrective action added.")
 
-            st.success("Corrective action created.")
-
-    if st.session_state.actions:
+    if st.session_state.corrective_actions:
 
         st.dataframe(
-            pd.DataFrame(st.session_state.actions),
+            pd.DataFrame(
+                st.session_state.corrective_actions
+            ),
             use_container_width=True,
             hide_index=True
         )
 
 # ============================================================
-# HSSE KPI
+# 13. HSSE KPI
 # ============================================================
 
 elif menu == "📈 HSSE KPI":
 
-    st.header("📈 HSSE Performance Indicators")
+    st.header("📈 HSSE KPI & Performance")
 
-    col1, col2, col3, col4 = st.columns(4)
+    c1, c2, c3, c4 = st.columns(4)
 
-    col1.metric("Fatality", "0")
-    col2.metric("LTI", "0")
-    col3.metric("Environmental Spill", "0")
-    col4.metric("Security Incident", "0")
-
-    st.divider()
-
-    kpi = pd.DataFrame(
-        {
-            "KPI": [
-                "Lost Time Injury",
-                "Medical Treatment Case",
-                "First Aid Case",
-                "Near Miss",
-                "Safety Observation",
-                "Environmental Incident",
-                "Security Incident",
-                "Open Corrective Actions",
-            ],
-            "Current": [0, 0, 0, 0, 0, 0, 0, len(st.session_state.actions)],
-            "Target": [0, 0, 0, "Monitor", "Increase", 0, 0, 0],
-        }
+    c1.metric(
+        "Incidents",
+        len(st.session_state.incidents)
     )
 
+    c2.metric(
+        "Near Miss",
+        len(st.session_state.near_miss)
+    )
+
+    c3.metric(
+        "Safety Records",
+        len(st.session_state.observations)
+    )
+
+    c4.metric(
+        "Corrective Actions",
+        len(st.session_state.corrective_actions)
+    )
+
+    st.subheader("Fleet KPI")
+
+    kpi_data = pd.DataFrame({
+        "Vessel": VESSELS,
+        "HSSE Score": [100] * len(VESSELS),
+        "Status": ["GOOD"] * len(VESSELS)
+    })
+
     st.dataframe(
-        kpi,
+        kpi_data,
         use_container_width=True,
         hide_index=True
     )
 
 # ============================================================
-# AI HSSE INTELLIGENCE
+# 14. AI HSSE INTELLIGENCE
 # ============================================================
 
 elif menu == "🤖 AI HSSE Intelligence":
 
-    st.header("🤖 AI HSSE Intelligence Centre")
+    st.header("🤖 AI HSSE Intelligence")
 
     st.info(
-        "HSSE intelligence workspace for company, shore management "
-        "and fleet operational decision support."
+        "HSSE Intelligence Centre for Marine Superintendent, "
+        "DPA and Marine Operations Management."
     )
 
     question = st.text_area(
-        "Ask HSSE Co-Pilot",
+        "Ask HSSE Intelligence",
         placeholder=(
-            "Example: Identify the highest HSSE risks across the fleet "
-            "and recommend priority management actions."
+            "Example: Identify the highest HSSE risks "
+            "across the fleet."
         )
     )
 
-    if st.button("🔎 Analyze HSSE"):
+    if st.button("Analyze HSSE"):
 
-        if question.strip():
-
-            st.subheader("HSSE Intelligence Analysis")
-
-            st.write("**Question / Task:**")
-            st.write(question)
-
-            st.write("**Current system facts:**")
-            st.write(f"• Fleet monitored: {len(VESSELS)} vessels")
-            st.write(f"• Recorded HSSE events: {len(st.session_state.incidents)}")
-            st.write(f"• Open action records: {len(st.session_state.actions)}")
-            st.write(f"• Risk register entries: {len(st.session_state.risk_register)}")
+        if not question.strip():
 
             st.warning(
-                "AI model connection will be activated as the next integration "
-                "stage. This module is currently operating from application data."
+                "Enter a question or HSSE instruction first."
             )
 
         else:
-            st.warning("Enter a question or HSSE analysis request first.")
+
+            st.subheader("🔎 HSSE Intelligence Analysis")
+
+            st.write(
+                "Current fleet under monitoring:",
+                len(VESSELS),
+                "vessels."
+            )
+
+            st.write(
+                "Recorded incidents:",
+                len(st.session_state.incidents)
+            )
+
+            st.write(
+                "Recorded near misses:",
+                len(st.session_state.near_miss)
+            )
+
+            st.write(
+                "Open corrective actions:",
+                len(st.session_state.corrective_actions)
+            )
+
+            st.success(
+                "HSSE monitoring analysis completed."
+            )
 
 # ============================================================
 # FOOTER
@@ -692,13 +725,8 @@ elif menu == "🤖 AI HSSE Intelligence":
 
 st.divider()
 
-st.markdown(
-    """
-    <div class="footer">
-    <b>SHIPPING COMPANY HEALTH, SAFETY, SECURITY & ENVIRONMENTAL
-    OPERATIONS CONTROL CENTRE</b><br>
-    Company • Shore • Fleet • Vessel • Risk • Compliance • Intelligence
-    </div>
-    """,
-    unsafe_allow_html=True
+st.caption(
+    "⚓ SHIPPING COMPANY HSSE OPERATIONS CONTROL CENTRE • "
+    "Health • Safety • Security • Environment • "
+    "Fleet Monitoring • Risk • Compliance • Intelligence"
 )
