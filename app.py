@@ -3,12 +3,12 @@ import pandas as pd
 from datetime import datetime
 
 # ============================================================
-# MARINE OPERATIONS HSSE
+# # SHIPPING COMPANY HEALTH, SAFETY, SECURITY & ENVIRONMENTAL OPERATIONS CONTROL CENTRE
 # Health • Safety • Security • Environment
 # ============================================================
 
 st.set_page_config(
-    page_title="MARINE OPERATIONS HSSE",
+    page_title="SHIPPING COMPANY HSSE OPERATIONS CONTROL CENTRE",
     page_icon="⚓",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -102,7 +102,7 @@ st.markdown(
 # SIDEBAR
 # ============================================================
 
-st.sidebar.title("⚓ MARINE OPERATIONS HSSE")
+st.sidebar.title("⚓ SHIPPING COMPANY HSSE OPERATIONS CONTROL CENTRE")f
 
 st.sidebar.caption(
     "Health • Safety • Security • Environment"
@@ -149,14 +149,10 @@ st.sidebar.caption(
 # ============================================================
 
 st.markdown(
-    '<div class="main-title">⚓ MARINE OPERATIONS HSSE</div>',
-    unsafe_allow_html=True
-)
+    '<div class="main-title">⚓ SHIPPING COMPANY HEALTH, SAFETY, SECURITY & ENVIRONMENTAL OPERATIONS CONTROL CENTRE</div>',
 
 st.markdown(
-    '<div class="sub-title">'
-    'Marine Health, Safety, Security & Environmental Operations Control Centre'
-    '</div>',
+    '<div class="sub-title">Shipping Company • Shore Management • Fleet Operations • Health • Safety • Security • Environment</div>',
     unsafe_allow_html=True
 )
 
@@ -190,9 +186,8 @@ if menu == "🏠 HSSE Dashboard":
 
     st.write("")
     st.write(
-        "MARINE OPERATIONS HSSE siap menerima dan "
-        "menganalisis data HSSE dari seluruh armada."
-    )
+        "SHIPPING COMPANY HSSE OPERATIONS CONTROL CENTRE siap menerima dan "
+"menganalisis data HSSE perusahaan, shore management, fleet, dan seluruh armada."
 
     st.subheader("🚢 Fleet HSSE Overview")
 
@@ -632,7 +627,7 @@ elif menu == "🧠 HSSE Intelligence":
 st.markdown(
     """
     <div class="footer">
-    MARINE OPERATIONS HSSE •
+    SHIPPING COMPANY HEALTH, SAFETY, SECURITY & ENVIRONMENTAL OPERATIONS CONTROL CENTRE •
     Health • Safety • Security • Environment •
     Fleet Monitoring • Risk • Intelligence
     </div>
