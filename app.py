@@ -3,8 +3,9 @@ import pandas as pd
 from datetime import datetime
 
 # ============================================================
-# # SHIPPING COMPANY HEALTH, SAFETY, SECURITY & ENVIRONMENTAL OPERATIONS CONTROL CENTRE
-# Health • Safety • Security • Environment
+# SHIPPING COMPANY
+# HEALTH, SAFETY, SECURITY & ENVIRONMENTAL
+# OPERATIONS CONTROL CENTRE
 # ============================================================
 
 st.set_page_config(
@@ -15,7 +16,7 @@ st.set_page_config(
 )
 
 # ============================================================
-# FLEET
+# MASTER DATA - 21 VESSELS
 # ============================================================
 
 VESSELS = [
@@ -43,55 +44,52 @@ VESSELS = [
 ]
 
 # ============================================================
-# CSS
+# SESSION STATE
+# ============================================================
+
+if "incidents" not in st.session_state:
+    st.session_state.incidents = []
+
+if "near_misses" not in st.session_state:
+    st.session_state.near_misses = []
+
+if "actions" not in st.session_state:
+    st.session_state.actions = []
+
+if "risk_register" not in st.session_state:
+    st.session_state.risk_register = []
+
+# ============================================================
+# STYLE
 # ============================================================
 
 st.markdown(
     """
     <style>
     .main-title {
-        font-size: 42px;
+        font-size: 30px;
         font-weight: 800;
-        margin-bottom: 0px;
+        text-align: center;
+        margin-bottom: 5px;
     }
 
     .sub-title {
-        font-size: 18px;
-        color: #666666;
-        margin-top: 0px;
+        text-align: center;
+        font-size: 17px;
         margin-bottom: 25px;
     }
 
-    .status-good {
-        padding: 14px;
-        border-radius: 8px;
-        background-color: rgba(0, 170, 80, 0.10);
-        border-left: 5px solid #00a650;
-        font-weight: 600;
-    }
-
-    .status-warning {
-        padding: 14px;
-        border-radius: 8px;
-        background-color: rgba(255, 170, 0, 0.12);
-        border-left: 5px solid #ffaa00;
-        font-weight: 600;
-    }
-
-    .status-critical {
-        padding: 14px;
-        border-radius: 8px;
-        background-color: rgba(220, 0, 0, 0.10);
-        border-left: 5px solid #dc0000;
-        font-weight: 600;
+    .company-box {
+        padding: 15px;
+        border: 1px solid #cccccc;
+        border-radius: 10px;
+        margin-bottom: 15px;
     }
 
     .footer {
-        margin-top: 50px;
-        padding-top: 20px;
-        border-top: 1px solid #dddddd;
-        color: #777777;
+        text-align: center;
         font-size: 13px;
+        padding: 25px 5px 10px 5px;
     }
     </style>
     """,
@@ -102,32 +100,26 @@ st.markdown(
 # SIDEBAR
 # ============================================================
 
-st.sidebar.title("⚓ SHIPPING COMPANY HSSE OPERATIONS CONTROL CENTRE")
-
-st.sidebar.caption(
-    "Health • Safety • Security • Environment"
-)
+st.sidebar.title("⚓ SHIPPING COMPANY HSSE")
+st.sidebar.caption("Operations Control Centre")
 
 menu = st.sidebar.radio(
-    "HSSE CONTROL CENTRE",
+    "CONTROL CENTRE",
     [
-        "🏠 HSSE Dashboard",
-        "🚨 Incident & Accident",
-        "⚠️ Near Miss",
-        "👷 Unsafe Act / Condition",
-        "👁️ Safety Observation",
-        "📋 Permit to Work",
-        "🛡️ Risk Assessment / JSA",
-        "🗣️ Toolbox Meeting",
-        "🔍 HSSE Inspection",
-        "📑 Audit & Findings",
+        "📊 Executive Dashboard",
+        "🏢 Company & Shore HSSE",
+        "🚢 Fleet HSSE",
+        "🦺 Safety Management",
+        "❤️ Health Management",
+        "🔐 Security Management",
+        "🌱 Environmental Management",
+        "⚠️ Incident & Near Miss",
+        "🧭 Risk Management",
+        "🚨 Emergency Response",
+        "📋 Compliance & Audit",
         "✅ Corrective Actions",
-        "🚒 Emergency Response",
-        "🌱 Environmental",
-        "🎓 Training & Competency",
-        "📊 HSSE KPI",
-        "🚢 Fleet HSSE Monitoring",
-        "🧠 HSSE Intelligence",
+        "📈 HSSE KPI",
+        "🤖 AI HSSE Intelligence",
     ]
 )
 
@@ -138,56 +130,79 @@ selected_vessel = st.sidebar.selectbox(
     ["ALL VESSELS"] + VESSELS
 )
 
-st.sidebar.metric("Fleet", len(VESSELS))
-
-st.sidebar.caption(
-    f"System time: {datetime.now().strftime('%d-%m-%Y %H:%M')}"
-)
+st.sidebar.write("Fleet size:", len(VESSELS))
+st.sidebar.write("System:", "ONLINE")
+st.sidebar.write("Updated:", datetime.now().strftime("%d-%m-%Y %H:%M"))
 
 # ============================================================
 # HEADER
 # ============================================================
 
 st.markdown(
-    '<div class="main-title">⚓ SHIPPING COMPANY HEALTH, SAFETY, SECURITY & ENVIRONMENTAL OPERATIONS CONTROL CENTRE</div>',
+    """
+    <div class="main-title">
+    ⚓ SHIPPING COMPANY HEALTH, SAFETY, SECURITY & ENVIRONMENTAL
+    OPERATIONS CONTROL CENTRE
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 st.markdown(
-    '<div class="sub-title">Shipping Company • Shore Management • Fleet Operations • Health • Safety • Security • Environment</div>',
+    """
+    <div class="sub-title">
+    Company • Shore Office • Fleet • Vessel • Personnel • Contractors •
+    Risk • Compliance • Emergency Response • HSSE Intelligence
+    </div>
+    """,
     unsafe_allow_html=True
 )
 
 # ============================================================
-# DASHBOARD
+# EXECUTIVE DASHBOARD
 # ============================================================
 
-if menu == "🏠 HSSE Dashboard":
+if menu == "📊 Executive Dashboard":
 
     st.header("📊 HSSE Executive Dashboard")
 
     col1, col2, col3, col4 = st.columns(4)
 
-    col1.metric("Fleet", "21")
-    col2.metric("Active Vessels", "21")
-    col3.metric("Open HSSE Actions", "0")
-    col4.metric("Critical Events", "0")
+    col1.metric("Fleet", len(VESSELS))
+    col2.metric("Active Vessels", len(VESSELS))
+    col3.metric("Open HSSE Actions", len(st.session_state.actions))
+    col4.metric("Critical Events", 0)
 
     st.divider()
 
-    st.subheader("🧠 Operational HSSE Intelligence")
+    st.subheader("🏢 Company HSSE Status")
 
-    st.markdown(
-        """
-        <div class="status-good">
-        HSSE STATUS: SYSTEM READY
-        </div>
-        """,
-        unsafe_allow_html=True
+    company_status = pd.DataFrame(
+        {
+            "Area": [
+                "Health",
+                "Safety",
+                "Security",
+                "Environment",
+                "Emergency Preparedness",
+                "Compliance",
+            ],
+            "Status": [
+                "MONITORING",
+                "MONITORING",
+                "MONITORING",
+                "MONITORING",
+                "READY",
+                "MONITORING",
+            ],
+        }
     )
 
-    st.write("")
-    st.write(
-        "SHIPPING COMPANY HSSE OPERATIONS CONTROL CENTRE siap menerima dan "
-"menganalisis data HSSE perusahaan, shore management, fleet, dan seluruh armada."
+    st.dataframe(
+        company_status,
+        use_container_width=True,
+        hide_index=True
+    )
 
     st.subheader("🚢 Fleet HSSE Overview")
 
@@ -208,227 +223,332 @@ if menu == "🏠 HSSE Dashboard":
     )
 
 # ============================================================
-# INCIDENT
+# COMPANY & SHORE HSSE
 # ============================================================
 
-elif menu == "🚨 Incident & Accident":
+elif menu == "🏢 Company & Shore HSSE":
 
-    st.header("🚨 Incident & Accident Management")
-
-    st.write(
-        "Register, monitor and investigate marine HSSE incidents "
-        "and accidents."
-    )
-
-    uploaded = st.file_uploader(
-        "Upload Incident / Accident Data (CSV)",
-        type=["csv"],
-        key="incident"
-    )
-
-    if uploaded is not None:
-        try:
-            df = pd.read_csv(uploaded)
-
-            st.success(
-                f"{len(df)} incident/accident records loaded."
-            )
-
-            st.subheader("Incident Records")
-            st.dataframe(df, use_container_width=True)
-
-        except Exception as e:
-            st.error(f"Unable to read CSV: {e}")
-
-# ============================================================
-# NEAR MISS
-# ============================================================
-
-elif menu == "⚠️ Near Miss":
-
-    st.header("⚠️ Near Miss Intelligence")
-
-    uploaded = st.file_uploader(
-        "Upload Near Miss Data (CSV)",
-        type=["csv"],
-        key="near_miss"
-    )
-
-    if uploaded is not None:
-        try:
-            df = pd.read_csv(uploaded)
-
-            st.metric("Near Miss Records", len(df))
-            st.dataframe(df, use_container_width=True)
-
-        except Exception as e:
-            st.error(f"Unable to read CSV: {e}")
-
-# ============================================================
-# UNSAFE ACT / CONDITION
-# ============================================================
-
-elif menu == "👷 Unsafe Act / Condition":
-
-    st.header("👷 Unsafe Act / Unsafe Condition")
-
-    uploaded = st.file_uploader(
-        "Upload Unsafe Act / Condition Data (CSV)",
-        type=["csv"],
-        key="unsafe"
-    )
-
-    if uploaded is not None:
-        try:
-            df = pd.read_csv(uploaded)
-            st.metric("Records", len(df))
-            st.dataframe(df, use_container_width=True)
-
-        except Exception as e:
-            st.error(f"Unable to read CSV: {e}")
-
-# ============================================================
-# SAFETY OBSERVATION
-# ============================================================
-
-elif menu == "👁️ Safety Observation":
-
-    st.header("👁️ Safety Observation")
-
-    uploaded = st.file_uploader(
-        "Upload Safety Observation Data (CSV)",
-        type=["csv"],
-        key="observation"
-    )
-
-    if uploaded is not None:
-        try:
-            df = pd.read_csv(uploaded)
-            st.metric("Safety Observations", len(df))
-            st.dataframe(df, use_container_width=True)
-
-        except Exception as e:
-            st.error(f"Unable to read CSV: {e}")
-
-# ============================================================
-# PERMIT TO WORK
-# ============================================================
-
-elif menu == "📋 Permit to Work":
-
-    st.header("📋 Permit to Work Control")
+    st.header("🏢 Company & Shore HSSE Management")
 
     st.info(
-        "Monitor Hot Work, Enclosed Space Entry, "
-        "Working Aloft, Electrical Work and other permits."
+        "Central HSSE control for shipping company management, "
+        "shore office, marine operations, technical department, "
+        "crewing, contractors and fleet."
     )
 
-    uploaded = st.file_uploader(
-        "Upload Permit to Work Data (CSV)",
-        type=["csv"],
-        key="ptw"
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.subheader("Company HSSE Functions")
+        st.write("• HSSE Policy & Objectives")
+        st.write("• Management Review")
+        st.write("• Safety Management System")
+        st.write("• Management of Change")
+        st.write("• Contractor HSSE")
+        st.write("• Training & Competency")
+
+    with col2:
+        st.subheader("Shore Management")
+        st.write("• Marine Operations")
+        st.write("• Technical Department")
+        st.write("• Crewing Department")
+        st.write("• DPA / Safety Department")
+        st.write("• Emergency Response Team")
+        st.write("• Senior Management")
+
+# ============================================================
+# FLEET HSSE
+# ============================================================
+
+elif menu == "🚢 Fleet HSSE":
+
+    st.header("🚢 Fleet HSSE Control")
+
+    vessel = st.selectbox(
+        "Select Vessel",
+        VESSELS,
+        key="fleet_vessel"
     )
 
-    if uploaded is not None:
-        try:
-            df = pd.read_csv(uploaded)
-            st.metric("Permit Records", len(df))
-            st.dataframe(df, use_container_width=True)
+    col1, col2, col3, col4 = st.columns(4)
 
-        except Exception as e:
-            st.error(f"Unable to read CSV: {e}")
+    col1.metric("HSSE Status", "MONITORING")
+    col2.metric("Open Incident", 0)
+    col3.metric("Near Miss", 0)
+    col4.metric("Open Actions", 0)
 
-# ============================================================
-# RISK ASSESSMENT
-# ============================================================
+    st.success(f"{vessel} is under HSSE monitoring.")
 
-elif menu == "🛡️ Risk Assessment / JSA":
+    st.subheader("Fleet Monitoring Areas")
 
-    st.header("🛡️ Risk Assessment / JSA")
-
-    uploaded = st.file_uploader(
-        "Upload Risk Assessment / JSA Data (CSV)",
-        type=["csv"],
-        key="risk"
+    monitoring = pd.DataFrame(
+        {
+            "Category": [
+                "Safety",
+                "Health",
+                "Security",
+                "Environment",
+                "Emergency Preparedness",
+                "Compliance",
+            ],
+            "Status": ["MONITORING"] * 6,
+        }
     )
 
-    if uploaded is not None:
-        try:
-            df = pd.read_csv(uploaded)
-            st.metric("Risk Assessments", len(df))
-            st.dataframe(df, use_container_width=True)
-
-        except Exception as e:
-            st.error(f"Unable to read CSV: {e}")
-
-# ============================================================
-# TOOLBOX
-# ============================================================
-
-elif menu == "🗣️ Toolbox Meeting":
-
-    st.header("🗣️ Toolbox Meeting")
-
-    uploaded = st.file_uploader(
-        "Upload Toolbox Meeting Records (CSV)",
-        type=["csv"],
-        key="toolbox"
+    st.dataframe(
+        monitoring,
+        use_container_width=True,
+        hide_index=True
     )
 
-    if uploaded is not None:
-        try:
-            df = pd.read_csv(uploaded)
-            st.metric("Toolbox Meetings", len(df))
-            st.dataframe(df, use_container_width=True)
-
-        except Exception as e:
-            st.error(f"Unable to read CSV: {e}")
-
 # ============================================================
-# INSPECTION
+# SAFETY
 # ============================================================
 
-elif menu == "🔍 HSSE Inspection":
+elif menu == "🦺 Safety Management":
 
-    st.header("🔍 HSSE Inspection")
+    st.header("🦺 Safety Management")
 
-    uploaded = st.file_uploader(
-        "Upload HSSE Inspection Data (CSV)",
-        type=["csv"],
-        key="inspection"
+    st.write("Control and monitoring of:")
+
+    st.write("• Permit to Work")
+    st.write("• Toolbox Meeting")
+    st.write("• Job Safety Analysis")
+    st.write("• PPE Compliance")
+    st.write("• Safe Working Practices")
+    st.write("• Lifting Operations")
+    st.write("• Working Aloft")
+    st.write("• Enclosed Space Entry")
+    st.write("• Hot Work")
+    st.write("• Safety Observation")
+
+# ============================================================
+# HEALTH
+# ============================================================
+
+elif menu == "❤️ Health Management":
+
+    st.header("❤️ Occupational Health Management")
+
+    st.write("• Crew medical fitness")
+    st.write("• Occupational health monitoring")
+    st.write("• Fatigue management")
+    st.write("• Hours of rest monitoring")
+    st.write("• Hygiene and sanitation")
+    st.write("• Heat stress")
+    st.write("• Noise exposure")
+    st.write("• Health campaigns")
+
+# ============================================================
+# SECURITY
+# ============================================================
+
+elif menu == "🔐 Security Management":
+
+    st.header("🔐 Maritime Security Management")
+
+    st.write("• Ship Security Plan")
+    st.write("• Security Level Monitoring")
+    st.write("• Access Control")
+    st.write("• Visitor Management")
+    st.write("• Security Drills")
+    st.write("• Suspicious Activity Reporting")
+    st.write("• Cyber Security Awareness")
+    st.write("• ISPS Monitoring")
+
+# ============================================================
+# ENVIRONMENT
+# ============================================================
+
+elif menu == "🌱 Environmental Management":
+
+    st.header("🌱 Environmental Management")
+
+    st.write("• MARPOL compliance")
+    st.write("• Oil pollution prevention")
+    st.write("• Garbage management")
+    st.write("• Sewage management")
+    st.write("• Air emissions")
+    st.write("• Ballast water")
+    st.write("• Spill prevention")
+    st.write("• Environmental incidents")
+
+# ============================================================
+# INCIDENT & NEAR MISS
+# ============================================================
+
+elif menu == "⚠️ Incident & Near Miss":
+
+    st.header("⚠️ Incident & Near Miss Management")
+
+    with st.form("incident_form"):
+
+        source = st.selectbox(
+            "Source",
+            ["SHORE OFFICE"] + VESSELS
+        )
+
+        event_type = st.selectbox(
+            "Event Type",
+            [
+                "Incident",
+                "Near Miss",
+                "Unsafe Act",
+                "Unsafe Condition",
+                "Environmental Event",
+                "Security Event",
+            ]
+        )
+
+        description = st.text_area("Description")
+
+        severity = st.selectbox(
+            "Severity",
+            ["Low", "Medium", "High", "Critical"]
+        )
+
+        submitted = st.form_submit_button("Save HSSE Event")
+
+        if submitted:
+
+            if description.strip():
+
+                st.session_state.incidents.append(
+                    {
+                        "Date": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                        "Source": source,
+                        "Type": event_type,
+                        "Description": description,
+                        "Severity": severity,
+                    }
+                )
+
+                st.success("HSSE event recorded successfully.")
+
+            else:
+                st.warning("Please enter event description.")
+
+    if st.session_state.incidents:
+
+        st.subheader("HSSE Event Register")
+
+        st.dataframe(
+            pd.DataFrame(st.session_state.incidents),
+            use_container_width=True,
+            hide_index=True
+        )
+
+# ============================================================
+# RISK MANAGEMENT
+# ============================================================
+
+elif menu == "🧭 Risk Management":
+
+    st.header("🧭 HSSE Risk Management")
+
+    with st.form("risk_form"):
+
+        hazard = st.text_input("Hazard")
+
+        likelihood = st.selectbox(
+            "Likelihood",
+            [1, 2, 3, 4, 5]
+        )
+
+        consequence = st.selectbox(
+            "Consequence",
+            [1, 2, 3, 4, 5]
+        )
+
+        mitigation = st.text_area("Control / Mitigation")
+
+        save_risk = st.form_submit_button("Add Risk")
+
+        if save_risk and hazard.strip():
+
+            score = likelihood * consequence
+
+            st.session_state.risk_register.append(
+                {
+                    "Hazard": hazard,
+                    "Likelihood": likelihood,
+                    "Consequence": consequence,
+                    "Risk Score": score,
+                    "Mitigation": mitigation,
+                }
+            )
+
+            st.success("Risk added to HSSE Risk Register.")
+
+    if st.session_state.risk_register:
+
+        st.dataframe(
+            pd.DataFrame(st.session_state.risk_register),
+            use_container_width=True,
+            hide_index=True
+        )
+
+# ============================================================
+# EMERGENCY RESPONSE
+# ============================================================
+
+elif menu == "🚨 Emergency Response":
+
+    st.header("🚨 Emergency Response Centre")
+
+    st.warning("Emergency Response Readiness")
+
+    emergency_data = pd.DataFrame(
+        {
+            "Emergency Scenario": [
+                "Fire / Explosion",
+                "Collision",
+                "Grounding",
+                "Oil Spill",
+                "Man Overboard",
+                "Medical Emergency",
+                "Security Threat",
+                "Abandon Ship",
+            ],
+            "Status": ["READY"] * 8,
+        }
     )
 
-    if uploaded is not None:
-        try:
-            df = pd.read_csv(uploaded)
-            st.metric("Inspection Records", len(df))
-            st.dataframe(df, use_container_width=True)
-
-        except Exception as e:
-            st.error(f"Unable to read CSV: {e}")
-
-# ============================================================
-# AUDIT
-# ============================================================
-
-elif menu == "📑 Audit & Findings":
-
-    st.header("📑 HSSE Audit & Findings")
-
-    uploaded = st.file_uploader(
-        "Upload Audit & Findings Data (CSV)",
-        type=["csv"],
-        key="audit"
+    st.dataframe(
+        emergency_data,
+        use_container_width=True,
+        hide_index=True
     )
 
-    if uploaded is not None:
-        try:
-            df = pd.read_csv(uploaded)
-            st.metric("Audit / Finding Records", len(df))
-            st.dataframe(df, use_container_width=True)
+# ============================================================
+# COMPLIANCE & AUDIT
+# ============================================================
 
-        except Exception as e:
-            st.error(f"Unable to read CSV: {e}")
+elif menu == "📋 Compliance & Audit":
+
+    st.header("📋 HSSE Compliance & Audit")
+
+    compliance = pd.DataFrame(
+        {
+            "Framework": [
+                "ISM Code",
+                "ISPS Code",
+                "MARPOL",
+                "SOLAS",
+                "MLC",
+                "Company SMS",
+                "Internal Audit",
+                "External Audit",
+            ],
+            "Status": ["MONITORING"] * 8,
+        }
+    )
+
+    st.dataframe(
+        compliance,
+        use_container_width=True,
+        hide_index=True
+    )
 
 # ============================================================
 # CORRECTIVE ACTIONS
@@ -436,200 +556,148 @@ elif menu == "📑 Audit & Findings":
 
 elif menu == "✅ Corrective Actions":
 
-    st.header("✅ Corrective Action Tracker")
+    st.header("✅ Corrective & Preventive Action Tracker")
 
-    uploaded = st.file_uploader(
-        "Upload Corrective Action Data (CSV)",
-        type=["csv"],
-        key="corrective"
-    )
+    with st.form("action_form"):
 
-    if uploaded is not None:
-        try:
-            df = pd.read_csv(uploaded)
-            st.metric("Corrective Actions", len(df))
-            st.dataframe(df, use_container_width=True)
+        action_source = st.selectbox(
+            "Source",
+            [
+                "Incident",
+                "Near Miss",
+                "Audit",
+                "Inspection",
+                "Risk Assessment",
+                "Management Review",
+            ]
+        )
 
-        except Exception as e:
-            st.error(f"Unable to read CSV: {e}")
+        action = st.text_area("Required Action")
+
+        responsible = st.text_input("Responsible Person / Department")
+
+        target_date = st.date_input("Target Date")
+
+        save_action = st.form_submit_button("Create Action")
+
+        if save_action and action.strip():
+
+            st.session_state.actions.append(
+                {
+                    "Source": action_source,
+                    "Action": action,
+                    "Responsible": responsible,
+                    "Target Date": str(target_date),
+                    "Status": "OPEN",
+                }
+            )
+
+            st.success("Corrective action created.")
+
+    if st.session_state.actions:
+
+        st.dataframe(
+            pd.DataFrame(st.session_state.actions),
+            use_container_width=True,
+            hide_index=True
+        )
 
 # ============================================================
-# EMERGENCY RESPONSE
+# HSSE KPI
 # ============================================================
 
-elif menu == "🚒 Emergency Response":
+elif menu == "📈 HSSE KPI":
 
-    st.header("🚒 Emergency Response")
+    st.header("📈 HSSE Performance Indicators")
 
-    st.warning(
-        "Emergency preparedness and response monitoring."
-    )
+    col1, col2, col3, col4 = st.columns(4)
 
-    emergency_types = [
-        "Fire",
-        "Collision",
-        "Grounding",
-        "Oil Spill",
-        "Man Overboard",
-        "Flooding",
-        "Loss of Propulsion",
-        "Loss of Steering",
-        "Medical Emergency",
-        "Security Incident",
-        "Abandon Ship",
-    ]
+    col1.metric("Fatality", "0")
+    col2.metric("LTI", "0")
+    col3.metric("Environmental Spill", "0")
+    col4.metric("Security Incident", "0")
 
-    emergency_df = pd.DataFrame(
+    st.divider()
+
+    kpi = pd.DataFrame(
         {
-            "Emergency Scenario": emergency_types,
-            "Readiness": ["MONITOR"] * len(emergency_types),
+            "KPI": [
+                "Lost Time Injury",
+                "Medical Treatment Case",
+                "First Aid Case",
+                "Near Miss",
+                "Safety Observation",
+                "Environmental Incident",
+                "Security Incident",
+                "Open Corrective Actions",
+            ],
+            "Current": [0, 0, 0, 0, 0, 0, 0, len(st.session_state.actions)],
+            "Target": [0, 0, 0, "Monitor", "Increase", 0, 0, 0],
         }
     )
 
     st.dataframe(
-        emergency_df,
+        kpi,
         use_container_width=True,
         hide_index=True
     )
 
 # ============================================================
-# ENVIRONMENT
+# AI HSSE INTELLIGENCE
 # ============================================================
 
-elif menu == "🌱 Environmental":
+elif menu == "🤖 AI HSSE Intelligence":
 
-    st.header("🌱 Environmental Intelligence")
-
-    uploaded = st.file_uploader(
-        "Upload Environmental Data (CSV)",
-        type=["csv"],
-        key="environment"
-    )
-
-    if uploaded is not None:
-        try:
-            df = pd.read_csv(uploaded)
-            st.metric("Environmental Records", len(df))
-            st.dataframe(df, use_container_width=True)
-
-        except Exception as e:
-            st.error(f"Unable to read CSV: {e}")
-
-# ============================================================
-# TRAINING
-# ============================================================
-
-elif menu == "🎓 Training & Competency":
-
-    st.header("🎓 HSSE Training & Competency")
-
-    uploaded = st.file_uploader(
-        "Upload Training / Competency Data (CSV)",
-        type=["csv"],
-        key="training"
-    )
-
-    if uploaded is not None:
-        try:
-            df = pd.read_csv(uploaded)
-            st.metric("Training Records", len(df))
-            st.dataframe(df, use_container_width=True)
-
-        except Exception as e:
-            st.error(f"Unable to read CSV: {e}")
-
-# ============================================================
-# KPI
-# ============================================================
-
-elif menu == "📊 HSSE KPI":
-
-    st.header("📊 HSSE Performance Indicators")
-
-    c1, c2, c3, c4 = st.columns(4)
-
-    c1.metric("LTI", "0")
-    c2.metric("TRC", "0")
-    c3.metric("Near Miss", "0")
-    c4.metric("Environmental Spill", "0")
-
-    st.caption(
-        "KPI values will be calculated from verified operational data."
-    )
-
-# ============================================================
-# FLEET MONITORING
-# ============================================================
-
-elif menu == "🚢 Fleet HSSE Monitoring":
-
-    st.header("🚢 Fleet HSSE Monitoring")
-
-    fleet_df = pd.DataFrame(
-        {
-            "Vessel": VESSELS,
-            "Status": ["ACTIVE"] * 21,
-            "HSSE Monitoring": ["READY"] * 21,
-        }
-    )
-
-    st.dataframe(
-        fleet_df,
-        use_container_width=True,
-        hide_index=True
-    )
-
-# ============================================================
-# HSSE INTELLIGENCE
-# ============================================================
-
-elif menu == "🧠 HSSE Intelligence":
-
-    st.header("🧠 HSSE Intelligence Centre")
-
-    st.write(
-        "HSSE Intelligence akan menggabungkan incident, near miss, "
-        "unsafe conditions, inspections, audits, corrective actions, "
-        "environmental data dan fleet monitoring."
-    )
-
-    st.subheader("FACTS")
+    st.header("🤖 AI HSSE Intelligence Centre")
 
     st.info(
-        "Belum ada dataset HSSE gabungan yang dianalisis."
+        "HSSE intelligence workspace for company, shore management "
+        "and fleet operational decision support."
     )
 
-    st.subheader("RISK")
-
-    st.warning(
-        "Risk assessment hanya akan dibuat berdasarkan data "
-        "operasional yang tersedia."
+    question = st.text_area(
+        "Ask HSSE Co-Pilot",
+        placeholder=(
+            "Example: Identify the highest HSSE risks across the fleet "
+            "and recommend priority management actions."
+        )
     )
 
-    st.subheader("DATA GAPS")
+    if st.button("🔎 Analyze HSSE"):
 
-    st.write(
-        "Data yang belum tersedia akan ditandai sebagai "
-        "DATA BELUM TERSEDIA dan tidak diasumsikan oleh sistem."
-    )
+        if question.strip():
 
-    st.subheader("PRIORITY ACTIONS")
+            st.subheader("HSSE Intelligence Analysis")
 
-    st.write(
-        "Priority Actions akan ditentukan berdasarkan "
-        "severity, status, due date dan verified HSSE data."
-    )
+            st.write("**Question / Task:**")
+            st.write(question)
+
+            st.write("**Current system facts:**")
+            st.write(f"• Fleet monitored: {len(VESSELS)} vessels")
+            st.write(f"• Recorded HSSE events: {len(st.session_state.incidents)}")
+            st.write(f"• Open action records: {len(st.session_state.actions)}")
+            st.write(f"• Risk register entries: {len(st.session_state.risk_register)}")
+
+            st.warning(
+                "AI model connection will be activated as the next integration "
+                "stage. This module is currently operating from application data."
+            )
+
+        else:
+            st.warning("Enter a question or HSSE analysis request first.")
 
 # ============================================================
 # FOOTER
 # ============================================================
 
+st.divider()
+
 st.markdown(
     """
     <div class="footer">
-    SHIPPING COMPANY HEALTH, SAFETY, SECURITY & ENVIRONMENTAL OPERATIONS CONTROL CENTRE •
-    Health • Safety • Security • Environment •
-    Fleet Monitoring • Risk • Intelligence
+    <b>SHIPPING COMPANY HEALTH, SAFETY, SECURITY & ENVIRONMENTAL
+    OPERATIONS CONTROL CENTRE</b><br>
+    Company • Shore • Fleet • Vessel • Risk • Compliance • Intelligence
     </div>
     """,
     unsafe_allow_html=True
