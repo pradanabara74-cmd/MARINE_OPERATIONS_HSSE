@@ -67,7 +67,7 @@ def ask_gemini(prompt):
         except Exception as e:
             text = str(e)
             if '429' in text or 'RESOURCE_EXHAUSTED' in text: return 'Gemini sedang mencapai batas quota penggunaan. Data HSSE tetap tersimpan; coba analisis AI kembali setelah quota tersedia.'
-            if '503' in text or 'UNAVAILABLE' in text:
+            if '503' in text or '504' in text or 'UNAVAILABLE' in text or 'DEADLINE_EXCEEDED' in text:
                 if attempt < 2: time.sleep(2*(attempt+1)); continue
                 return 'Gemini sedang high demand. Silakan klik Analyze HSSE kembali beberapa saat kemudian.'
             return f'AI analysis error: {e}'
