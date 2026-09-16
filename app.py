@@ -50,7 +50,10 @@ def get_gemini_client():
     if genai is None: return None
     try: api_key = str(st.secrets.get('GEMINI_API_KEY','')).strip()
     except Exception: api_key = ''
-    return genai.Client(api_key=api_key) if api_key else None
+    return genai.Client(
+    api_key=api_key,
+    http_options=types.HttpOptions(timeout=30000)
+) if api_key else None
 
 def ask_gemini(prompt):
     client = get_gemini_client()
