@@ -55,22 +55,95 @@ def get_gemini_client():
     http_options=types.HttpOptions(timeout=30000)
 ) if api_key else None
 
+def hsse_fallback_analysis():
+    incidents = st.session_state.get("incidents", [])
+    near_miss = st.session_state.get("near_miss", [])
+    risk_records = st.session_state.get("risk_records", [])
+    corrective_actions = st.session_state.get("corrective_actions", [])
+
+    vessel = selected_vessel if "selected_vessel" in globals() else "ALL VESSELS"
+
+    def relevant(rows):
+        if vessel == "ALL VESSELS":
+            return rows
+        return [
+            r for r in rows
+            if str(r.get("Vessel", "")).upper() == str(vessel).upper()
+        ]
+
+    inc = relevant(incidents)
+    nm = relevant(near_miss)
+    risks = relevant(risk_records)
+    actions = relevant(corrective_actions)
+
+    open_actions = [
+        r for r in actions
+        if str(r.get("Status", "OPEN")).upper()
+        not in ("CLOSED", "COMPLETED")
+    ]
+
+    high_risks = [
+        r for r in risks
+        if int(r.get("Risk Score", 0) or 0) >= 15
+    ]
+
+    scope = vessel
+
+    return f"""
+### HSSE Executive Analysis — {scope}
+
+**Operational Facts**
+- Recorded incidents: **{len(inc)}**
+- Recorded near misses: **{len(nm)}**
+- High-risk records: **{len(high_risks)}**
+- Open corrective actions: **{len(open_actions)}**
+
+### Risk Assessment
+{"🔴 High-risk records require immediate management attention." if high_risks else "🟢 No high-risk record is currently identified from the supplied data."}
+
+### Near Miss Review
+{"🟠 Near-miss records are present and should be reviewed for recurring causes." if nm else "🟢 No near-miss record is currently recorded for this scope."}
+
+### Corrective Actions
+{"🟠 Open corrective actions require follow-up and verification of closure." if open_actions else "🟢 No open corrective action is currently recorded for this scope."}
+
+### Priority Actions
+1. Verify that all HSSE records for **{scope}** are current and complete.
+2. Review high-risk items and implement controls before further exposure.
+3. Investigate near misses and record root causes and preventive measures.
+4. Follow up outstanding corrective actions until verified closed.
+5. Escalate significant HSSE risks to the Marine Superintendent and DPA.
+
+### Intelligence Status
+**Local HSSE Intelligence fallback active.**
+Analysis is based only on records currently stored in this application.
+"""
+
+
 def ask_gemini(prompt):
     client = get_gemini_client()
+
     if client is None:
-        return 'Gemini AI belum aktif. Tambahkan GEMINI_API_KEY di Streamlit Secrets. Dashboard dan analisis rule-based tetap berfungsi.'
-    instruction = '''You are an HSSE Intelligence Copilot for a marine shipping company. Use ONLY supplied data. Never invent operational facts. If data is missing say DATA BELUM TERSEDIA. Prioritize safety, compliance, escalation and corrective action. Answer professionally for Marine Superintendent, DPA and Marine Operations Management.'''
-    for attempt in range(3):
-        try:
-            res = client.models.generate_content(model='gemini-3.7-flash', contents=prompt, config=types.GenerateContentConfig(system_instruction=instruction, temperature=0.2, max_output_tokens=1600))
-            return res.text
-        except Exception as e:
-            text = str(e)
-            if '429' in text or 'RESOURCE_EXHAUSTED' in text: return 'Gemini sedang mencapai batas quota penggunaan. Data HSSE tetap tersimpan; coba analisis AI kembali setelah quota tersedia.'
-            if '503' in text or '504' in text or 'UNAVAILABLE' in text or 'DEADLINE_EXCEEDED' in text:
-                if attempt < 2: time.sleep(2*(attempt+1)); continue
-                return 'Gemini sedang high demand. Silakan klik Analyze HSSE kembali beberapa saat kemudian.'
-            return f'AI analysis error: {e}'
+        return hsse_fallback_analysis()
+
+    instruction = """
+You are an HSSE Intelligence Copilot for a marine shipping company.
+Use ONLY supplied data.
+Never invent operational facts.
+"""
+
+    try:
+        res = client.models.generate_content(
+            model="gemini-3.7-flash",
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                system_instruction=instruction
+            ),
+        )
+        return res.text
+
+    except Exception:
+        return hsse_fallback_analysis()
 
 st.sidebar.title('■ SHIPPING COMPANY HSSE'); st.sidebar.caption('Operations Control Centre'); st.sidebar.markdown('### CONTROL CENTRE')
 menus=['■ Executive Dashboard','■ Company & Shore HSSE','■ Fleet HSSE','■ Safety Management','❤■ Health Management','■ Security Management','■ Environmental Management','■■ Incident & Near Miss','■ Risk Management','■ Emergency Response','■ Compliance & Audit','■ Corrective Actions','■ HSSE KPI','■ AI HSSE Intelligence']
