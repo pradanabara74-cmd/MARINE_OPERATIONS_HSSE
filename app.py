@@ -19,6 +19,35 @@ STORE_KEYS = ['company_records','fleet_reviews','observations','health_records',
 for key in STORE_KEYS:
     if key not in st.session_state:
         st.session_state[key] = []
+# ===== PERMANENT HSSE DATA STORAGE =====
+DATA_FILE = "hsse_data.json"
+
+def save_hsse_data():
+    data = {}
+    for key in STORE_KEYS:
+        data[key] = st.session_state.get(key, [])
+    try:
+        with open(DATA_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, default=str)
+    except Exception as e:
+        st.error(f"Failed to save HSSE data: {e}")
+
+def load_hsse_data():
+    if not os.path.exists(DATA_FILE):
+        return
+    try:
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        for key in STORE_KEYS:
+            if key in data:
+                st.session_state[key] = data[key]
+    except Exception as e:
+        st.warning(f"Failed to load HSSE data: {e}")
+
+if "hsse_data_loaded" not in st.session_state:
+    load_hsse_data()
+    st.session_state.hsse_data_loaded = True
+
 
 def now(): return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 def vessel_count(rows, vessel): return sum(1 for r in rows if r.get('Vessel') == vessel)
@@ -202,19 +231,19 @@ elif menu=='❤■ Health Management':
 elif menu=='■ Security Management':
     st.header('■ Security Management'); vessel=st.selectbox('Vessel',VESSELS); level=st.selectbox('Security Level',['Level 1','Level 2','Level 3']); event=st.selectbox('Security Event',['Routine Monitoring','Access Control','Security Breach','Suspicious Activity','Piracy / Armed Robbery','Cyber Security','Other']); report=st.text_area('Security Report')
     if st.button('Save Security Record'):
-        st.session_state.security_records.append({'Date':now(),'Vessel':vessel,'Security Level':level,'Event':event,'Report':report}); st.success('Security record saved.')
+        st.session_state.security_records.append({'Date':now(),'Vessel':vessel,'Security Level':level,'Event':event,'Report':report}); st.success('Security record saved.'); save_hsse_data()
     show_table('Security Records',st.session_state.security_records)
 
 elif menu=='■ Environmental Management':
     st.header('■ Environmental Management'); vessel=st.selectbox('Vessel',VESSELS); category=st.selectbox('Environmental Category',['Oil Spill','Garbage','Sewage','Air Emission','Ballast Water','Hazardous Material','Environmental Observation','Other']); report=st.text_area('Environmental Report'); status=st.selectbox('Status',['Normal','Monitoring','Action Required','Critical'])
     if st.button('Save Environmental Record'):
-        st.session_state.environment_records.append({'Date':now(),'Vessel':vessel,'Category':category,'Report':report,'Status':status}); st.success('Environmental record saved.')
+        st.session_state.environment_records.append({'Date':now(),'Vessel':vessel,'Category':category,'Report':report,'Status':status}); st.success('Environmental record saved.'); save_hsse_data()
     show_table('Environmental Records',st.session_state.environment_records)
 
 elif menu=='■■ Incident & Near Miss':
     st.header('■■ Incident & Near Miss Management'); report_type=st.radio('Report Type',['Incident / Accident','Near Miss']); vessel=st.selectbox('Vessel',VESSELS); event_date=st.date_input('Event Date'); description=st.text_area('Event Description'); severity=st.selectbox('Severity',['Low','Medium','High','Critical']); immediate=st.text_area('Immediate Action')
     if st.button('Submit Event Report'):
-        record={'Date':str(event_date),'Vessel':vessel,'Description':description,'Severity':severity,'Immediate Action':immediate,'Recorded':now()}; st.session_state.incidents.append(record) if report_type=='Incident / Accident' else st.session_state.near_miss.append(record); st.success('HSSE event recorded successfully.')
+        record={'Date':str(event_date),'Vessel':vessel,'Description':description,'Severity':severity,'Immediate Action':immediate,'Recorded':now()}; st.session_state.incidents.append(record) if report_type=='Incident / Accident' else st.session_state.near_miss.append(record); st.success('HSSE event recorded successfully.'); save_hsse_data()
     show_table('Incident Records',st.session_state.incidents); show_table('Near Miss Records',st.session_state.near_miss)
 
 elif menu=='■ Risk Management':
@@ -224,25 +253,25 @@ elif menu=='■ Risk Management':
     else: st.success('LOW RISK')
     control=st.text_area('Risk Control / Mitigation')
     if st.button('Save Risk Assessment'):
-        st.session_state.risk_records.append({'Date':now(),'Vessel':vessel,'Hazard':hazard,'Likelihood':likelihood,'Consequence':consequence,'Risk Score':score,'Risk Level':band,'Control / Mitigation':control}); st.success('Risk assessment saved.')
+        st.session_state.risk_records.append({'Date':now(),'Vessel':vessel,'Hazard':hazard,'Likelihood':likelihood,'Consequence':consequence,'Risk Score':score,'Risk Level':band,'Control / Mitigation':control}); st.success('Risk assessment saved.'); save_hsse_data()
     show_table('Risk Register',st.session_state.risk_records)
 
 elif menu=='■ Emergency Response':
     st.header('■ Emergency Response'); vessel=st.selectbox('Vessel',VESSELS); emergency=st.selectbox('Emergency Type',['Fire','Collision','Grounding','Flooding','Oil Spill','Man Overboard','Medical Emergency','Security Threat','Abandon Ship','Other']); status=st.selectbox('Emergency Status',['Standby','Activated','Under Control','Closed']); actions=st.text_area('Emergency Situation / Actions')
     if st.button('Save Emergency Record'):
-        st.session_state.emergency_records.append({'Date':now(),'Vessel':vessel,'Emergency Type':emergency,'Status':status,'Situation / Actions':actions}); st.success('Emergency record saved.')
+        st.session_state.emergency_records.append({'Date':now(),'Vessel':vessel,'Emergency Type':emergency,'Status':status,'Situation / Actions':actions}); st.success('Emergency record saved.'); save_hsse_data()
     show_table('Emergency Records',st.session_state.emergency_records)
 
 elif menu=='■ Compliance & Audit':
     st.header('■ Compliance & Audit'); vessel=st.selectbox('Vessel',VESSELS); audit=st.selectbox('Audit / Inspection',['ISM Internal Audit','ISPS Audit','MLC Inspection','HSSE Inspection','Flag State','Port State Control','Client Audit','Management Inspection','Other']); finding=st.text_area('Finding / Observation'); classification=st.selectbox('Classification',['Observation','Minor','Major','Non-Conformity']); due=st.date_input('Target Close Date')
     if st.button('Save Audit Finding'):
-        st.session_state.audit_findings.append({'Date':now(),'Vessel':vessel,'Audit / Inspection':audit,'Finding':finding,'Classification':classification,'Target Close Date':str(due),'Status':'OPEN'}); st.success('Audit finding saved.')
+        st.session_state.audit_findings.append({'Date':now(),'Vessel':vessel,'Audit / Inspection':audit,'Finding':finding,'Classification':classification,'Target Close Date':str(due),'Status':'OPEN'}); st.success('Audit finding saved.'); save_hsse_data()
     show_table('Audit Findings',st.session_state.audit_findings)
 
 elif menu=='■ Corrective Actions':
     st.header('■ Corrective Action Tracker'); vessel=st.selectbox('Vessel',VESSELS); action=st.text_area('Corrective Action'); responsible=st.text_input('Responsible Person / Department'); due=st.date_input('Due Date'); priority=st.selectbox('Priority',['Low','Medium','High','Critical']); status=st.selectbox('Status',['OPEN','IN PROGRESS','COMPLETED','CLOSED'])
     if st.button('Add Corrective Action'):
-        st.session_state.corrective_actions.append({'Created':now(),'Vessel':vessel,'Action':action,'Responsible':responsible,'Due Date':str(due),'Priority':priority,'Status':status}); st.success('Corrective action added.')
+        st.session_state.corrective_actions.append({'Created':now(),'Vessel':vessel,'Action':action,'Responsible':responsible,'Due Date':str(due),'Priority':priority,'Status':status}); st.success('Corrective action added.'); save_hsse_data()
     show_table('Corrective Action Register',st.session_state.corrective_actions)
 
 elif menu=='■ HSSE KPI':
