@@ -4,6 +4,7 @@ import json
 import os
 import time
 from datetime import datetime, date
+from supabase import create_client
 
 try:
     from google import genai
