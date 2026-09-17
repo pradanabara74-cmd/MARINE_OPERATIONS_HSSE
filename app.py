@@ -19,30 +19,50 @@ STORE_KEYS = ['company_records','fleet_reviews','observations','health_records',
 for key in STORE_KEYS:
     if key not in st.session_state:
         st.session_state[key] = []
-# ===== PERMANENT HSSE DATA STORAGE =====
-DATA_FILE = "hsse_data.json"
+# ===== PERMANENT HSSE DATA STORAGE - SUPABASE =====
+
+SUPABASE_URL = st.secrets["SUPABASE_URL"]
+SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 def save_hsse_data():
     data = {}
     for key in STORE_KEYS:
         data[key] = st.session_state.get(key, [])
+
     try:
-        with open(DATA_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, default=str)
+        supabase.table("hsse_store").upsert(
+            {
+                "store_key": "hsse_main",
+                "data": data,
+                "updated_at": datetime.now().isoformat()
+            },
+            on_conflict="store_key"
+        ).execute()
     except Exception as e:
-        st.error(f"Failed to save HSSE data: {e}")
+        st.error(f"Failed to save HSSE data to Supabase: {e}")
+
 
 def load_hsse_data():
-    if not os.path.exists(DATA_FILE):
-        return
     try:
-        with open(DATA_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        for key in STORE_KEYS:
-            if key in data:
-                st.session_state[key] = data[key]
+        response = (
+            supabase.table("hsse_store")
+            .select("data")
+            .eq("store_key", "hsse_main")
+            .limit(1)
+            .execute()
+        )
+
+        if response.data:
+            data = response.data[0].get("data", {})
+
+            for key in STORE_KEYS:
+                if key in data:
+                    st.session_state[key] = data[key]
+
     except Exception as e:
-        st.warning(f"Failed to load HSSE data: {e}")
+        st.warning(f"Failed to load HSSE data from Supabase: {e}")
+
 
 if "hsse_data_loaded" not in st.session_state:
     load_hsse_data()
