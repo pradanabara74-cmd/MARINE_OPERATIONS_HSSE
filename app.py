@@ -234,19 +234,19 @@ elif menu=='■ Fleet HSSE':
     score=hsse_score(vessel); c1,c2,c3,c4=st.columns(4); c1.metric('HSSE Status',status_from_score(score)); c2.metric('Incidents',vessel_count(st.session_state.incidents,vessel)); c3.metric('Near Miss',vessel_count(st.session_state.near_miss,vessel)); c4.metric('Open Actions',len(open_actions(vessel)))
     remarks=st.text_area(f'HSSE Review — {vessel}',height=180)
     if st.button('Save Fleet HSSE Review'):
-        st.session_state.fleet_reviews.append({'Date':now(),'Vessel':vessel,'HSSE Score':score,'Status':status_from_score(score),'Remarks':remarks}); st.success('Fleet HSSE review saved.')
+        st.session_state.fleet_reviews.append({'Date':now(),'Vessel':vessel,'HSSE Score':score,'Status':status_from_score(score),'Remarks':remarks}); st.success('Fleet HSSE review saved.'); save_hsse_data()
     show_table('Fleet HSSE Review History',[r for r in st.session_state.fleet_reviews if r.get('Vessel')==vessel])
 
 elif menu=='■ Safety Management':
     st.header('■ Safety Management'); vessel=st.selectbox('Vessel',VESSELS); activity=st.selectbox('Safety Activity',['Safety Observation','Unsafe Act','Unsafe Condition','Toolbox Meeting','Permit to Work','JSA / Risk Assessment','Safety Inspection']); description=st.text_area('Description'); severity=st.selectbox('Risk Level',['Low','Medium','High','Critical'])
     if st.button('Save Safety Record'):
-        st.session_state.observations.append({'Date':now(),'Vessel':vessel,'Activity':activity,'Description':description,'Risk':severity}); st.success('Safety record saved.')
+        st.session_state.observations.append({'Date':now(),'Vessel':vessel,'Activity':activity,'Description':description,'Risk':severity}); st.success('Safety record saved.'); save_hsse_data()
     show_table('Safety Records',st.session_state.observations)
 
 elif menu=='❤■ Health Management':
     st.header('❤■ Health Management'); vessel=st.selectbox('Vessel',VESSELS); category=st.selectbox('Health Category',['Medical Case','First Aid','Fitness for Duty','Fatigue','Occupational Health','Hygiene','Heat Stress','Other']); report=st.text_area('Health Report / Observation'); status=st.selectbox('Status',['Monitoring','Follow Up','Closed'])
     if st.button('Save Health Record'):
-        st.session_state.health_records.append({'Date':now(),'Vessel':vessel,'Category':category,'Report':report,'Status':status}); st.success('Health record saved.')
+        st.session_state.health_records.append({'Date':now(),'Vessel':vessel,'Category':category,'Report':report,'Status':status}); st.success('Health record saved.'); save_hsse_data()
     show_table('Health Records',st.session_state.health_records)
 
 elif menu=='■ Security Management':
